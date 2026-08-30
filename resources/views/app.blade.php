@@ -49,10 +49,59 @@
         @php
             $seoGlobal = \App\Services\SeoService::getGlobalSettings();
             $verificationTags = \App\Services\SeoService::getVerificationMeta();
+            // Server-rendered OG for crawlers (WhatsApp/Facebook/X don't run JS) - mirrors SeoService::getMetaFor
+            $serverSeo = null;
+            try {
+                $routeName = \Illuminate\Support\Facades\Route::currentRouteName();
+                if ($routeName === 'article.show' && request()->route('slug')) {
+                    $a = \App\Models\Article::where('slug', request()->route('slug'))->where('status', 'published')->first();
+                    if ($a) $serverSeo = \App\Services\SeoService::getMetaFor('article', $a);
+                } elseif ($routeName === 'category.show' && request()->route('slug')) {
+                    $c = \App\Models\Category::where('slug', request()->route('slug'))->first();
+                    if ($c) $serverSeo = \App\Services\SeoService::getMetaFor('category', $c);
+                } elseif ($routeName === 'topic.show' && request()->route('slug')) {
+                    $t = \App\Models\Topic::where('slug', request()->route('slug'))->first();
+                    if ($t) $serverSeo = \App\Services\SeoService::getMetaFor('topic', $t);
+                } elseif ($routeName === 'page.show' && request()->route('slug')) {
+                    $p = \App\Models\Page::where('slug', request()->route('slug'))->where('status', 'published')->first();
+                    if ($p) $serverSeo = \App\Services\SeoService::getMetaFor('page', $p);
+                } elseif ($routeName === 'author.show' && request()->route('username')) {
+                    $au = \App\Models\Author::where('username', request()->route('username'))->first();
+                    if ($au) $serverSeo = \App\Services\SeoService::getMetaFor('author', $au);
+                } elseif (in_array($routeName, ['home', 'latest', 'trending', 'explore', 'topics.index'])) {
+                    $serverSeo = \App\Services\SeoService::getMetaFor($routeName === 'home' ? 'home' : str_replace(['topics.index'], ['topics'], $routeName));
+                } else {
+                    $serverSeo = \App\Services\SeoService::getMetaFor('home');
+                }
+            } catch (\Throwable $e) {
+                $serverSeo = null;
+            }
+            $ssOgImage = $serverSeo['og_image'] ?? $seoGlobal['og_image'] ?? asset('og-image.png');
+            $ssTitle = $serverSeo['title'] ?? $seoGlobal['site_name'] ?? $siteName;
+            $ssDesc = $serverSeo['description'] ?? $seoGlobal['meta_description'] ?? '';
+            $ssUrl = $serverSeo['og_url'] ?? url()->current();
+            $ssType = $serverSeo['og_type'] ?? 'website';
         @endphp
         @foreach($verificationTags as $tag)
             <meta name="{{ $tag['name'] }}" content="{{ $tag['content'] }}">
         @endforeach
+        {{-- Server-rendered OG/Twitter for link previews (crawlers) --}}
+        <meta property="og:title" content="{{ $ssTitle }}">
+        <meta property="og:description" content="{{ Str::limit(strip_tags($ssDesc), 160) }}">
+        <meta property="og:type" content="{{ $ssType }}">
+        <meta property="og:url" content="{{ $ssUrl }}">
+        <meta property="og:site_name" content="{{ $seoGlobal['og_site_name'] ?? $siteName }}">
+        <meta property="og:image" content="{{ $ssOgImage }}">
+        <meta property="og:image:secure_url" content="{{ $ssOgImage }}">
+        <meta property="og:image:type" content="image/png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="{{ $ssTitle }}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $ssTitle }}">
+        <meta name="twitter:description" content="{{ Str::limit(strip_tags($ssDesc), 160) }}">
+        <meta name="twitter:image" content="{{ $ssOgImage }}">
+        <meta name="twitter:image:alt" content="{{ $ssTitle }}">
         @if($seoGlobal['sitemap_enabled'] ?? true)
             <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ url('/sitemap.xml') }}">
         @endif
