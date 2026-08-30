@@ -31,7 +31,7 @@ Route::get('/topic/{slug}', [TopicController::class, 'show'])->name('topic.show'
 Route::get('/author/{username}', [AuthorController::class, 'show'])->name('author.show');
 Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/dashboard', function () {
         return redirect()->route('admin.dashboard');
     })->name('dashboard');

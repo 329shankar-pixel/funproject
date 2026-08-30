@@ -161,7 +161,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Features::registration() — disabled: public sign-up removed, only admin can create users
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([
