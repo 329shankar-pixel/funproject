@@ -39,6 +39,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+        Route::post('articles/bulk', [App\Http\Controllers\Admin\ArticleController::class, 'bulk'])->name('articles.bulk');
+        Route::post('categories/bulk', [App\Http\Controllers\Admin\CategoryController::class, 'bulk'])->name('categories.bulk');
+        Route::post('topics/bulk', [App\Http\Controllers\Admin\TopicController::class, 'bulk'])->name('topics.bulk');
+        Route::post('authors/bulk', [App\Http\Controllers\Admin\AuthorController::class, 'bulk'])->name('authors.bulk');
+        Route::post('pages/bulk', [App\Http\Controllers\Admin\PageController::class, 'bulk'])->name('pages.bulk');
+        Route::post('navigation/bulk', [NavigationLinkController::class, 'bulk'])->name('navigation.bulk');
+
         Route::resource('articles', App\Http\Controllers\Admin\ArticleController::class)->except(['show']);
         Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class)->except(['show']);
         Route::resource('topics', App\Http\Controllers\Admin\TopicController::class)->except(['show']);

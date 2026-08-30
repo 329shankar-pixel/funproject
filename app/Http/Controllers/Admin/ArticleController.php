@@ -129,6 +129,28 @@ class ArticleController extends Controller
         return back()->with('success', 'Article deleted');
     }
 
+    public function bulk(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:articles,id',
+            'action' => 'required|string|in:delete,publish,unpublish,draft,archive,published',
+        ]);
+
+        $ids = $request->input('ids');
+        $action = $request->input('action');
+
+        match ($action) {
+            'delete' => Article::whereIn('id', $ids)->delete(),
+            'publish', 'published' => Article::whereIn('id', $ids)->update(['status' => 'published', 'published_at' => now()]),
+            'unpublish', 'draft' => Article::whereIn('id', $ids)->update(['status' => 'draft']),
+            'archive' => Article::whereIn('id', $ids)->update(['status' => 'archived']),
+            default => null,
+        };
+
+        return back()->with('success', ucfirst($action).' completed for '.count($ids).' articles');
+    }
+
     private function validateData(Request $request, ?int $ignoreId = null): array
     {
         return $request->validate([

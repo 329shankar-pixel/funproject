@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Author;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\RedirectResponse;
 
 class AuthorController extends Controller
 {
@@ -46,6 +46,7 @@ class AuthorController extends Controller
             $data['cover_image'] = $request->file('cover_image')->store('authors/cover', 'public');
         }
         Author::create($data);
+
         return redirect()->route('admin.authors.index')->with('success', 'Author created');
     }
 
@@ -72,20 +73,45 @@ class AuthorController extends Controller
             unset($data['cover_image']);
         }
         $author->update($data);
+
         return redirect()->route('admin.authors.index')->with('success', 'Author updated');
     }
 
     public function destroy(Author $author): RedirectResponse
     {
         $author->delete();
+
         return back()->with('success', 'Author deleted');
+    }
+
+    public function bulk(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:authors,id',
+            'action' => 'required|string|in:delete,activate,deactivate,verify,unverify',
+        ]);
+
+        $ids = $request->input('ids');
+        $action = $request->input('action');
+
+        match ($action) {
+            'delete' => Author::whereIn('id', $ids)->delete(),
+            'activate' => Author::whereIn('id', $ids)->update(['is_active' => true]),
+            'deactivate' => Author::whereIn('id', $ids)->update(['is_active' => false]),
+            'verify' => Author::whereIn('id', $ids)->update(['is_verified' => true]),
+            'unverify' => Author::whereIn('id', $ids)->update(['is_verified' => false]),
+            default => null,
+        };
+
+        return back()->with('success', ucfirst($action).' completed for '.count($ids).' authors');
     }
 
     private function validateData(Request $request, ?int $id = null): array
     {
         return $request->validate([
             'name' => 'required|string|max:255',
-            'username' => 'nullable|string|max:255|unique:authors,username' . ($id ? ",$id" : ''),
+            'username' => 'nullable|string|max:255|unique:authors,username'.($id ? ",$id" : ''),
             'bio' => 'nullable|string',
             'profile_image' => 'nullable|image|max:2048',
             'cover_image' => 'nullable|image|max:4096',

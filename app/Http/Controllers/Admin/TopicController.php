@@ -72,6 +72,30 @@ class TopicController extends Controller
         return back()->with('success', 'Topic deleted');
     }
 
+    public function bulk(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:topics,id',
+            'action' => 'required|string|in:delete,activate,deactivate,feature,unfeature',
+        ]);
+
+        $ids = $request->input('ids');
+        $action = $request->input('action');
+
+        match ($action) {
+            'delete' => Topic::whereIn('id', $ids)->delete(),
+            'activate' => Topic::whereIn('id', $ids)->update(['is_active' => true]),
+            'deactivate' => Topic::whereIn('id', $ids)->update(['is_active' => false]),
+            'feature' => Topic::whereIn('id', $ids)->update(['is_featured' => true]),
+            'unfeature' => Topic::whereIn('id', $ids)->update(['is_featured' => false]),
+            default => null,
+        };
+        Cache::forget('shared_trending_topics');
+
+        return back()->with('success', ucfirst($action).' completed for '.count($ids).' topics');
+    }
+
     private function validateData(Request $request, ?int $id = null): array
     {
         return $request->validate([

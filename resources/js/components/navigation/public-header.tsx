@@ -229,23 +229,6 @@ export function PublicHeader({ categories: propCategories, trendingTopics: propT
                                 Sign In
                             </Link>
                         )}
-                        {/* Dynamic masthead CTA: if admin created header_masthead links, use first as Subscribe */}
-                        {(() => {
-                            const mastheadLinks: NavLink[] = (navigation?.custom as any)?.header_masthead ?? [];
-                            if (mastheadLinks.length > 0) {
-                                const primary = mastheadLinks[0];
-                                return (
-                                    <DynamicLink link={primary} className="hidden rounded-sm bg-[#cc0000] px-3 py-1 font-bold uppercase tracking-wide text-white hover:bg-[#a00000] sm:inline-flex">
-                                        {primary.label}
-                                    </DynamicLink>
-                                );
-                            }
-                            return (
-                                <Link href="/login" className="hidden rounded-sm bg-[#cc0000] px-3 py-1 font-bold uppercase tracking-wide text-white hover:bg-[#a00000] sm:inline-flex">
-                                    Subscribe
-                                </Link>
-                            );
-                        })()}
                     </div>
                 </div>
             </div>
@@ -305,26 +288,6 @@ export function PublicHeader({ categories: propCategories, trendingTopics: propT
                             >
                                 <Search className="h-4 w-4" />
                             </button>
-                            {/* Masthead CTA dynamic */}
-                            {(() => {
-                                const mastheadLinks: NavLink[] = (navigation?.custom as any)?.header_masthead ?? [];
-                                if (mastheadLinks.length > 0) {
-                                    const primary = mastheadLinks[0];
-                                    return (
-                                        <DynamicLink link={primary} className="inline-flex items-center rounded-sm bg-[#cc0000] px-4 py-2 text-sm font-bold uppercase tracking-wide text-white shadow-sm hover:bg-[#a00000] md:px-5 md:py-2.5">
-                                            {primary.label}
-                                        </DynamicLink>
-                                    );
-                                }
-                                return (
-                                    <Link
-                                        href="/login"
-                                        className="inline-flex items-center rounded-sm bg-[#cc0000] px-4 py-2 text-sm font-bold uppercase tracking-wide text-white shadow-sm hover:bg-[#a00000] md:px-5 md:py-2.5"
-                                    >
-                                        Subscribe
-                                    </Link>
-                                );
-                            })()}
                         </div>
                     </div>
                 </div>
@@ -464,11 +427,8 @@ export function PublicHeader({ categories: propCategories, trendingTopics: propT
 
                     <div className="flex-1 overflow-y-auto">
                         <div className="p-4">
-                            <div className="mb-6 grid grid-cols-2 gap-2">
-                                <Link href="/login" className="rounded-sm bg-[#cc0000] py-2.5 text-center text-sm font-bold uppercase tracking-wide text-white">
-                                    Subscribe
-                                </Link>
-                                <Link href="/login" className="rounded-sm border border-zinc-200 py-2.5 text-center text-sm font-bold uppercase tracking-wide dark:border-zinc-800">
+                            <div className="mb-6">
+                                <Link href="/login" className="flex rounded-sm border border-zinc-200 py-2.5 text-center text-sm font-bold uppercase tracking-wide dark:border-zinc-800 justify-center">
                                     Sign In
                                 </Link>
                             </div>
@@ -571,12 +531,7 @@ export function PublicHeader({ categories: propCategories, trendingTopics: propT
                     </div>
 
                     <div className="border-t border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
-                        <p className="font-semibold uppercase tracking-wide text-zinc-700 dark:text-zinc-300">Follow us</p>
-                        <p className="mt-1">Get the latest news delivered to your inbox.</p>
-                        <Link href="/login" className="mt-3 inline-flex rounded-sm bg-black px-4 py-2 text-xs font-bold uppercase tracking-wide text-white dark:bg-white dark:text-black">
-                            Subscribe to newsletter
-                        </Link>
-                        <p className="mt-4 text-[11px] uppercase tracking-wide">
+                        <p className="mt-2 text-[11px] uppercase tracking-wide">
                             © {new Date().getFullYear()} {siteSettings.site_name}. {siteSettings.footer_copyright}
                         </p>
                     </div>

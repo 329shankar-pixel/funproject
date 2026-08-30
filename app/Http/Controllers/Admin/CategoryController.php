@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\RedirectResponse;
 
 class CategoryController extends Controller
 {
@@ -38,6 +38,7 @@ class CategoryController extends Controller
             $data['image'] = $request->file('image')->store('categories', 'public');
         }
         Category::create($data);
+
         return redirect()->route('admin.categories.index')->with('success', 'Category created');
     }
 
@@ -56,20 +57,43 @@ class CategoryController extends Controller
             unset($data['image']);
         }
         $category->update($data);
+
         return redirect()->route('admin.categories.index')->with('success', 'Category updated');
     }
 
     public function destroy(Category $category): RedirectResponse
     {
         $category->delete();
+
         return back()->with('success', 'Category deleted');
+    }
+
+    public function bulk(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:categories,id',
+            'action' => 'required|string|in:delete,activate,deactivate,publish,unpublish',
+        ]);
+
+        $ids = $request->input('ids');
+        $action = $request->input('action');
+
+        match ($action) {
+            'delete' => Category::whereIn('id', $ids)->delete(),
+            'activate', 'publish' => Category::whereIn('id', $ids)->update(['is_active' => true]),
+            'deactivate', 'unpublish' => Category::whereIn('id', $ids)->update(['is_active' => false]),
+            default => null,
+        };
+
+        return back()->with('success', ucfirst($action).' completed for '.count($ids).' categories');
     }
 
     private function validateData(Request $request, ?int $id = null): array
     {
         return $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:categories,slug' . ($id ? ",$id" : ''),
+            'slug' => 'nullable|string|max:255|unique:categories,slug'.($id ? ",$id" : ''),
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'color' => 'nullable|string|max:20',

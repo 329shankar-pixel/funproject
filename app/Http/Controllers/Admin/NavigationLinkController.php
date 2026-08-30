@@ -65,6 +65,27 @@ class NavigationLinkController extends Controller
         return back()->with('success', 'Link deleted');
     }
 
+    public function bulk(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:navigation_links,id',
+            'action' => 'required|string|in:delete,activate,deactivate',
+        ]);
+
+        $ids = $request->input('ids');
+        $action = $request->input('action');
+
+        match ($action) {
+            'delete' => NavigationLink::whereIn('id', $ids)->delete(),
+            'activate' => NavigationLink::whereIn('id', $ids)->update(['is_active' => true]),
+            'deactivate' => NavigationLink::whereIn('id', $ids)->update(['is_active' => false]),
+            default => null,
+        };
+
+        return back()->with('success', ucfirst($action).' completed for '.count($ids).' links');
+    }
+
     private function validateData(Request $request): array
     {
         return $request->validate([
