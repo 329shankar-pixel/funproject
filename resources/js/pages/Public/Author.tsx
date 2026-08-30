@@ -1,4 +1,7 @@
 import { Head, Link, usePage } from "@inertiajs/react";
+import { SeoHead } from "@/components/seo/seo-head";
+import { AnalyticsScripts } from "@/components/seo/analytics-scripts";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { ArticleCard } from "@/components/articles/article-card";
 import { PublicFooter } from "@/components/navigation/public-footer";
 import { PublicHeader } from "@/components/navigation/public-header";
@@ -17,6 +20,7 @@ interface Article {
     category: {
         name: string;
         slug: string;
+        color: string | null;
     } | null;
     author: {
         name: string;
@@ -50,19 +54,27 @@ interface AuthorPageProps {
     author: Author;
     articles: { data: Article[] };
     categories: Category[];
+    seo?: any;
+    verificationMeta?: { name: string; content: string }[];
 }
 
-export default function AuthorPage({ author, articles, categories }: AuthorPageProps) {
+export default function AuthorPage({ author, articles, categories, seo, verificationMeta }: AuthorPageProps) {
     const profileImage = author.profile_image ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&background=171717&color=fff&size=200`;
     const page = usePage();
     const siteSettings = (page.props as unknown as { siteSettings?: SiteSettings }).siteSettings ?? { site_name: "Editorial" } as SiteSettings;
+    const sharedSeo = (page.props as unknown as { seo?: any }).seo;
+    const sharedVerification = (page.props as unknown as { verificationMeta?: { name: string; content: string }[] }).verificationMeta;
+    const finalSeo = seo ?? sharedSeo;
+    const finalVerification = verificationMeta ?? sharedVerification;
 
     return (
         <>
-            <Head title={`${author.name} - ${siteSettings.site_name}`} />
+            {finalSeo ? <SeoHead seo={finalSeo} verification={finalVerification} /> : <Head title={`${author.name} - ${siteSettings.site_name}`} />}
+            <AnalyticsScripts />
 
             <div className="min-h-screen bg-background">
                 <PublicHeader categories={categories} siteSettings={siteSettings} />
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4"><AdSlot position="header" /></div>
 
                 {/* Author Header */}
                 <div className="border-b border-border bg-muted/30">
@@ -86,9 +98,7 @@ export default function AuthorPage({ author, articles, categories }: AuthorPageP
                                     {author.type}
                                 </p>
                                 {author.bio && (
-                                    <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
-                                        {author.bio}
-                                    </p>
+                                    <div className="prose prose-sm mt-3 max-w-xl text-muted-foreground prose-p:leading-relaxed prose-a:underline" dangerouslySetInnerHTML={{ __html: author.bio }} />
                                 )}
                                 <div className="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground sm:justify-start">
                                     <span>{author.articles_count.toLocaleString()} articles</span>
@@ -114,17 +124,22 @@ export default function AuthorPage({ author, articles, categories }: AuthorPageP
                 <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
                     <h2 className="mb-6 text-lg font-bold text-foreground">Articles</h2>
                     {articles?.data && articles.data.length > 0 ? (
+                        <>
                         <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
                             {articles.data.map((article) => (
                                 <ArticleCard key={article.id} article={article} />
                             ))}
                         </div>
+                        <div className="mt-8"><AdSlot position="between_articles" /></div>
+                        </>
                     ) : (
                         <div className="py-20 text-center">
                             <p className="text-muted-foreground">No articles published yet.</p>
                         </div>
                     )}
                 </div>
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6"><AdSlot position="footer" /></div>
+                <AdSlot position="anchor" />
 
                 <PublicFooter categories={categories} siteSettings={siteSettings} />
             </div>

@@ -121,7 +121,7 @@ export default function Dashboard({
 }: DashboardProps) {
     const page = usePage();
     const siteSettings = (page.props as unknown as { siteSettings?: SiteSettings }).siteSettings;
-    const siteName = siteSettings?.site_name ?? 'Editorial';
+    const siteName = siteSettings?.site_name ?? 'Public Center';
     const authUser = (page.props as unknown as { auth: { user: { name: string; email: string } } }).auth.user;
 
     return (

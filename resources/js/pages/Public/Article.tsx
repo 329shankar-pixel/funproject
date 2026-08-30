@@ -1,10 +1,14 @@
 import { Head, Link, usePage } from "@inertiajs/react";
 import { formatDistanceToNow } from "date-fns";
 import { useEffect, useRef, useState } from "react";
-import { Bookmark, Share2, MessageCircle, Heart } from "lucide-react";
+import { Bookmark, Heart } from "lucide-react";
 import { ArticleCard } from "@/components/articles/article-card";
 import { PublicFooter } from "@/components/navigation/public-footer";
 import { PublicHeader } from "@/components/navigation/public-header";
+import { SeoHead } from "@/components/seo/seo-head";
+import { AnalyticsScripts } from "@/components/seo/analytics-scripts";
+import { AdSlot, AffiliateDisclosure } from "@/components/ads/ad-slot";
+import { SocialShare } from "@/components/social/social-share";
 import type { SiteSettings } from "@/types/global";
 
 interface Article {
@@ -52,6 +56,8 @@ interface ArticlePageProps {
     relatedArticles: Article[];
     moreFromAuthor: { data: Article[] };
     categories: Category[];
+    seo?: any;
+    verificationMeta?: { name: string; content: string }[];
 }
 
 function ReadingProgress() {
@@ -83,16 +89,22 @@ export default function ArticlePage({
     relatedArticles,
     moreFromAuthor,
     categories,
+    seo,
+    verificationMeta,
 }: ArticlePageProps) {
     const page = usePage();
-    const siteSettings = (page.props as unknown as { siteSettings?: SiteSettings }).siteSettings ?? { site_name: "Editorial" } as SiteSettings;
+    const siteSettings = (page.props as unknown as { siteSettings?: SiteSettings }).siteSettings ?? { site_name: "Public Center" } as SiteSettings;
+    const sharedSeo = (page.props as unknown as { seo?: any }).seo;
+    const sharedVerification = (page.props as unknown as { verificationMeta?: { name: string; content: string }[] }).verificationMeta;
+    const finalSeo = seo ?? sharedSeo;
+    const finalVerification = verificationMeta ?? sharedVerification;
     const imageUrl = article.featured_image ?? `https://picsum.photos/seed/${article.id}/1200/675`;
     const authorImage = article.author?.profile_image ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(article.author?.name ?? "A")}&background=171717&color=fff`;
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [liked, setLiked] = useState(false);
-    const [showShare, setShowShare] = useState(false);
     const [scrollVisible, setScrollVisible] = useState(false);
     const articleRef = useRef<HTMLDivElement>(null);
+    const articleUrl = typeof window !== "undefined" ? window.location.href : `/article/${article.slug}`;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -104,51 +116,39 @@ export default function ArticlePage({
 
     return (
         <>
-            <Head title={`${article.title} - ${siteSettings.site_name}`} />
+            {finalSeo ? <SeoHead seo={finalSeo} verification={finalVerification} /> : <Head title={`${article.title} - ${siteSettings.site_name}`} />}
+            <AnalyticsScripts />
             <ReadingProgress />
 
             <div className="min-h-screen bg-background">
                 <PublicHeader categories={categories} siteSettings={siteSettings} />
+                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 pt-4">
+                    <AdSlot position="header" />
+                </div>
 
-                {/* Floating share bar on scroll */}
+                {/* Floating dynamic share bar — platforms controlled via Admin → Social Media */}
                 <div
                     className={`fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform transition-all duration-500 ${
                         scrollVisible ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
                     }`}
                 >
-                    <div className="flex items-center gap-1 rounded-full border border-border bg-background/95 px-4 py-2 shadow-lg backdrop-blur">
+                    <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white/95 px-2 py-2 shadow-xl backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/95">
                         <button
                             onClick={() => setLiked(!liked)}
-                            className={`rounded-full p-2 transition-colors ${liked ? "text-red-500" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${liked ? "bg-red-50 text-red-600 dark:bg-red-950" : "text-zinc-500 hover:bg-zinc-100 hover:text-black dark:text-zinc-400"}`}
+                            aria-label="Like"
                         >
                             <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
                         </button>
                         <button
                             onClick={() => setIsBookmarked(!isBookmarked)}
-                            className={`rounded-full p-2 transition-colors ${isBookmarked ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${isBookmarked ? "bg-zinc-900 text-white dark:bg-white dark:text-black" : "text-zinc-500 hover:bg-zinc-100 hover:text-black dark:text-zinc-400"}`}
+                            aria-label="Bookmark"
                         >
                             <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
                         </button>
-                        <button className="rounded-full p-2 text-muted-foreground hover:text-foreground transition-colors">
-                            <MessageCircle className="h-4 w-4" />
-                        </button>
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowShare(!showShare)}
-                                className="rounded-full p-2 text-muted-foreground hover:text-foreground transition-colors"
-                            >
-                                <Share2 className="h-4 w-4" />
-                            </button>
-                            {showShare && (
-                                <div className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded-lg border border-border bg-background p-2 shadow-lg">
-                                    <div className="flex flex-col gap-1 whitespace-nowrap">
-                                        <button className="rounded px-3 py-1.5 text-xs hover:bg-muted text-left">Copy link</button>
-                                        <button className="rounded px-3 py-1.5 text-xs hover:bg-muted text-left">Share on X</button>
-                                        <button className="rounded px-3 py-1.5 text-xs hover:bg-muted text-left">Share on Facebook</button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-800" />
+                        <SocialShare title={article.title} url={articleUrl} description={article.excerpt} variant="floating" />
                     </div>
                 </div>
 
@@ -258,6 +258,17 @@ export default function ArticlePage({
                         dangerouslySetInnerHTML={{ __html: article.body }}
                     />
 
+                    <div className="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+                        <SocialShare title={article.title} url={articleUrl} description={article.excerpt} variant="inline" />
+                    </div>
+
+                    <div className="mt-8">
+                        <AffiliateDisclosure />
+                    </div>
+                    <div className="mt-6">
+                        <AdSlot position="in_article" />
+                    </div>
+
                     {/* Topics */}
                     {article.topics && article.topics.length > 0 && (
                         <div className="mt-10 flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -291,15 +302,24 @@ export default function ArticlePage({
                                         {article.author.name}
                                     </Link>
                                     {article.author.bio && (
-                                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                                            {article.author.bio}
-                                        </p>
+                                        <div className="prose prose-sm mt-1 max-w-none text-sm leading-relaxed text-muted-foreground prose-p:leading-relaxed" dangerouslySetInnerHTML={{ __html: article.author.bio }} />
                                     )}
                                 </div>
                             </div>
                         </div>
                     )}
+                    <div className="mt-8">
+                        <AdSlot position="footer" />
+                    </div>
+                    <div className="mt-6 flex gap-6">
+                        <div className="flex-1" />
+                        <div className="hidden lg:block w-80">
+                            <AdSlot position="sidebar" />
+                        </div>
+                    </div>
                 </article>
+
+                <AdSlot position="anchor" />
 
                 {/* Related Articles */}
                 {relatedArticles && relatedArticles.length > 0 && (

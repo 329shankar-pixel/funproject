@@ -1,4 +1,7 @@
 import { Head, Link, usePage } from "@inertiajs/react";
+import { SeoHead } from "@/components/seo/seo-head";
+import { AnalyticsScripts } from "@/components/seo/analytics-scripts";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { ArticleCard } from "@/components/articles/article-card";
 import { PublicFooter } from "@/components/navigation/public-footer";
 import { PublicHeader } from "@/components/navigation/public-header";
@@ -17,6 +20,7 @@ interface Article {
     category: {
         name: string;
         slug: string;
+        color: string | null;
     } | null;
     author: {
         name: string;
@@ -35,17 +39,25 @@ interface CategoryPageProps {
     category: Category;
     articles: { data: Article[] };
     categories: Category[];
+    seo?: any;
+    verificationMeta?: { name: string; content: string }[];
 }
 
-export default function CategoryPage({ category, articles, categories }: CategoryPageProps) {
+export default function CategoryPage({ category, articles, categories, seo, verificationMeta }: CategoryPageProps) {
     const page = usePage();
-    const siteSettings = (page.props as unknown as { siteSettings?: SiteSettings }).siteSettings ?? { site_name: "Editorial" } as SiteSettings;
+    const siteSettings = (page.props as unknown as { siteSettings?: SiteSettings }).siteSettings ?? { site_name: "Public Center" } as SiteSettings;
+    const sharedSeo = (page.props as unknown as { seo?: any }).seo;
+    const sharedVerification = (page.props as unknown as { verificationMeta?: { name: string; content: string }[] }).verificationMeta;
+    const finalSeo = seo ?? sharedSeo;
+    const finalVerification = verificationMeta ?? sharedVerification;
     return (
         <>
-            <Head title={`${category.name} - ${siteSettings.site_name}`} />
+            {finalSeo ? <SeoHead seo={finalSeo} verification={finalVerification} /> : <Head title={`${category.name} - ${siteSettings.site_name}`} />}
+            <AnalyticsScripts />
 
             <div className="min-h-screen bg-background">
                 <PublicHeader categories={categories} siteSettings={siteSettings} />
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4"><AdSlot position="header" /></div>
 
                 <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                     {/* Breadcrumb */}
@@ -59,23 +71,28 @@ export default function CategoryPage({ category, articles, categories }: Categor
                     <div className="mb-10 border-b border-border pb-8">
                         <h1 className="text-3xl font-bold text-foreground sm:text-4xl">{category.name}</h1>
                         {category.description && (
-                            <p className="mt-3 max-w-2xl text-base text-muted-foreground">{category.description}</p>
+                            <div className="prose prose-base mt-3 max-w-2xl text-muted-foreground prose-p:leading-relaxed prose-a:underline" dangerouslySetInnerHTML={{ __html: category.description }} />
                         )}
                     </div>
 
                     {/* Articles */}
                     {articles?.data && articles.data.length > 0 ? (
+                        <>
                         <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
                             {articles.data.map((article) => (
                                 <ArticleCard key={article.id} article={article} />
                             ))}
                         </div>
+                        <div className="mt-8"><AdSlot position="in_feed" /></div>
+                        </>
                     ) : (
                         <div className="py-20 text-center">
                             <p className="text-muted-foreground">No articles found in this category.</p>
                         </div>
                     )}
                 </div>
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6"><AdSlot position="footer" /></div>
+                <AdSlot position="anchor" />
 
                 <PublicFooter categories={categories} siteSettings={siteSettings} />
             </div>

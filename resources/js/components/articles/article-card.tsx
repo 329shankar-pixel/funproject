@@ -16,7 +16,7 @@ interface Article {
     category: {
         name: string;
         slug: string;
-        color: string | null;
+        color?: string | null;
     } | null;
     author: {
         name: string;

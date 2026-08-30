@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
 use App\Services\DiscoveryService;
+use App\Services\SeoService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,6 +25,7 @@ class PageController extends Controller
         return Inertia::render('Public/Page', [
             'page' => $page,
             'categories' => $this->discoveryService->getMenuCategories(),
+            'seo' => SeoService::getMetaFor('page', $page),
         ]);
     }
 }

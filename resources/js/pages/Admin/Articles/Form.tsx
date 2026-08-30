@@ -1,11 +1,12 @@
-import { Head, Link, useForm } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RichEditor } from '@/components/ui/rich-editor';
 
 interface Article {
     id: number;
@@ -24,6 +25,11 @@ interface Article {
     is_opinion: boolean;
     is_analysis: boolean;
     topics?: { id: number }[];
+    seo_title?: string | null;
+    seo_description?: string | null;
+    canonical_url?: string | null;
+    og_image?: string | null;
+    seoMetadata?: { meta_keywords?: string | null; robots?: string | null; og_title?: string | null; og_description?: string | null; twitter_title?: string | null; twitter_description?: string | null; twitter_image?: string | null; meta_description?: string | null; meta_title?: string | null } | null;
 }
 
 export default function ArticleForm({ article, categories, authors, topics }: { article: Article | null; categories: { id: number; name: string }[]; authors: { id: number; name: string }[]; topics: { id: number; name: string }[] }) {
@@ -45,6 +51,17 @@ export default function ArticleForm({ article, categories, authors, topics }: { 
         is_analysis: article?.is_analysis ?? false,
         topics: article?.topics?.map(t => t.id) ?? [] as number[],
         featured_image: null as File | null,
+        seo_title: (article as any)?.seo_title ?? (article as any)?.seoMetadata?.meta_title ?? '',
+        seo_description: (article as any)?.seo_description ?? (article as any)?.seoMetadata?.meta_description ?? '',
+        meta_keywords: (article as any)?.seoMetadata?.meta_keywords ?? '',
+        canonical_url: (article as any)?.canonical_url ?? (article as any)?.seoMetadata?.canonical_url ?? '',
+        og_title: (article as any)?.seoMetadata?.og_title ?? '',
+        og_description: (article as any)?.seoMetadata?.og_description ?? '',
+        og_image: (article as any)?.og_image ?? (article as any)?.seoMetadata?.og_image ?? '',
+        twitter_title: (article as any)?.seoMetadata?.twitter_title ?? '',
+        twitter_description: (article as any)?.seoMetadata?.twitter_description ?? '',
+        twitter_image: (article as any)?.seoMetadata?.twitter_image ?? '',
+        robots: (article as any)?.seoMetadata?.robots ?? '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -67,10 +84,10 @@ export default function ArticleForm({ article, categories, authors, topics }: { 
         formData.set('is_analysis', data.is_analysis ? '1' : '0');
 
         if (isEdit) {
-            formData.append('_method', 'put');
-            post(`/admin/articles/${article!.id}`, { forceFormData: true });
+            formData.append('_method', 'PUT');
+            router.post(`/admin/articles/${article!.id}`, formData);
         } else {
-            post('/admin/articles', { forceFormData: true });
+            router.post('/admin/articles', formData);
         }
     };
 
@@ -102,11 +119,11 @@ export default function ArticleForm({ article, categories, authors, topics }: { 
                             </div>
                             <div className="md:col-span-2">
                                 <Label>Excerpt</Label>
-                                <Textarea value={data.excerpt} onChange={e => setData('excerpt', e.target.value)} rows={2} />
+                                <RichEditor value={data.excerpt} onChange={(v) => setData('excerpt', v)} placeholder="Article excerpt..." />
                             </div>
                             <div className="md:col-span-2">
                                 <Label>Body *</Label>
-                                <Textarea value={data.body} onChange={e => setData('body', e.target.value)} rows={10} />
+                                <RichEditor value={data.body} onChange={(v) => setData('body', v)} placeholder="Article body..." />
                                 {errors.body && <p className="text-sm text-red-500">{errors.body}</p>}
                             </div>
                         </CardContent>
@@ -183,6 +200,31 @@ export default function ArticleForm({ article, categories, authors, topics }: { 
                                     </label>
                                 ))}
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader><CardTitle>SEO (per-article, overrides global)</CardTitle><CardDescription>Leave blank to use global SEO defaults from Admin → SEO & Ads. These power Google, Bing, social previews, sitemap priority.</CardDescription></CardHeader>
+                        <CardContent className="grid gap-4">
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div><Label>SEO Title (meta_title, 60 chars)</Label><Input value={data.seo_title} onChange={e => setData('seo_title', e.target.value)} placeholder="Custom title for search" />{errors.seo_title && <p className="text-sm text-red-500">{errors.seo_title}</p>}</div>
+                                <div><Label>Canonical URL</Label><Input value={data.canonical_url} onChange={e => setData('canonical_url', e.target.value)} placeholder="https://example.com/article/slug" /></div>
+                            </div>
+                            <div><Label>SEO Description (meta_description, 155 chars)</Label><Textarea value={data.seo_description} onChange={e => setData('seo_description', e.target.value)} rows={2} maxLength={500} /></div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div><Label>Meta Keywords</Label><Input value={data.meta_keywords} onChange={e => setData('meta_keywords', e.target.value)} placeholder="keyword1, keyword2" /></div>
+                                <div><Label>Robots (index, follow / noindex)</Label><Input value={data.robots} onChange={e => setData('robots', e.target.value)} placeholder="index, follow" /></div>
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div><Label>OG Title</Label><Input value={data.og_title} onChange={e => setData('og_title', e.target.value)} placeholder="Open Graph title" /></div>
+                                <div><Label>OG Image URL or /storage path</Label><Input value={data.og_image} onChange={e => setData('og_image', e.target.value)} placeholder="https://example.com/image.jpg" /></div>
+                            </div>
+                            <div><Label>OG Description</Label><Textarea value={data.og_description} onChange={e => setData('og_description', e.target.value)} rows={2} /></div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div><Label>Twitter Title</Label><Input value={data.twitter_title} onChange={e => setData('twitter_title', e.target.value)} /></div>
+                                <div><Label>Twitter Image</Label><Input value={data.twitter_image} onChange={e => setData('twitter_image', e.target.value)} /></div>
+                            </div>
+                            <div><Label>Twitter Description</Label><Textarea value={data.twitter_description} onChange={e => setData('twitter_description', e.target.value)} rows={2} /></div>
                         </CardContent>
                     </Card>
 

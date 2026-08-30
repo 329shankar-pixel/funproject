@@ -9,10 +9,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Cache;
 
 class Article extends Model
 {
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => Cache::forget('seo_sitemap_xml'));
+        static::deleted(fn () => Cache::forget('seo_sitemap_xml'));
+    }
 
     protected $fillable = [
         'uuid', 'title', 'slug', 'subtitle', 'excerpt', 'body',

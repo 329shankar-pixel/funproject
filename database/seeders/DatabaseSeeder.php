@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             AuthorSeeder::class,
             ArticleSeeder::class,
             SettingSeeder::class,
+            NavigationLinkSeeder::class,
         ]);
     }
 }

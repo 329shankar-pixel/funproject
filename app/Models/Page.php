@@ -12,8 +12,16 @@ class Page extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => Cache::forget('shared_footer_pages'));
-        static::deleted(fn () => Cache::forget('shared_footer_pages'));
+        static::saved(function () {
+            Cache::forget('shared_footer_pages');
+            Cache::forget('navigation_menus');
+            Cache::forget('seo_sitemap_xml');
+        });
+        static::deleted(function () {
+            Cache::forget('shared_footer_pages');
+            Cache::forget('navigation_menus');
+            Cache::forget('seo_sitemap_xml');
+        });
     }
 
     protected $fillable = [

@@ -1,10 +1,11 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RichEditor } from '@/components/ui/rich-editor';
 
 export default function TopicForm({ topic }: { topic: any }) {
     const isEdit = !!topic;
@@ -28,8 +29,12 @@ export default function TopicForm({ topic }: { topic: any }) {
         });
         fd.set('is_active', data.is_active ? '1' : '0');
         fd.set('is_featured', data.is_featured ? '1' : '0');
-        if (isEdit) { fd.append('_method', 'put'); post(`/admin/topics/${topic.id}`, { forceFormData: true }); }
-        else post('/admin/topics', { forceFormData: true });
+        if (isEdit) {
+            fd.append('_method', 'PUT');
+            router.post(`/admin/topics/${topic.id}`, fd);
+        } else {
+            router.post('/admin/topics', fd);
+        }
     };
 
     return (
@@ -42,7 +47,7 @@ export default function TopicForm({ topic }: { topic: any }) {
                         <CardContent className="grid gap-4 md:grid-cols-2">
                             <div><Label>Name *</Label><Input value={data.name} onChange={e => setData('name', e.target.value)} />{errors.name && <p className="text-sm text-red-500">{errors.name}</p>}</div>
                             <div><Label>Slug</Label><Input value={data.slug} onChange={e => setData('slug', e.target.value)} /></div>
-                            <div className="md:col-span-2"><Label>Description</Label><Textarea value={data.description} onChange={e => setData('description', e.target.value)} rows={3} /></div>
+                            <div className="md:col-span-2"><Label>Description</Label><RichEditor value={data.description} onChange={(v) => setData('description', v)} placeholder="Topic description..." /></div>
                             <div><Label>Color</Label><Input type="color" value={data.color} onChange={e => setData('color', e.target.value)} className="h-10 p-1" /></div>
                             <div><Label>Sort Order</Label><Input type="number" value={String(data.sort_order)} onChange={e => setData('sort_order', Number(e.target.value))} /></div>
                             <div><Label>Image</Label><Input type="file" accept="image/*" onChange={e => setData('image', e.target.files?.[0] ?? null)} /></div>

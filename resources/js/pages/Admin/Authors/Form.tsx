@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RichEditor } from '@/components/ui/rich-editor';
 
 export default function AuthorForm({ author, users }: { author: any; users: { id: number; name: string }[] }) {
     const isEdit = !!author;
@@ -32,8 +33,12 @@ export default function AuthorForm({ author, users }: { author: any; users: { id
         });
         fd.set('is_verified', data.is_verified ? '1' : '0');
         fd.set('is_active', data.is_active ? '1' : '0');
-        if (isEdit) { fd.append('_method', 'put'); post(`/admin/authors/${author.id}`, { forceFormData: true }); }
-        else post('/admin/authors', { forceFormData: true });
+        if (isEdit) {
+            fd.append('_method', 'PUT');
+            router.post(`/admin/authors/${author.id}`, fd);
+        } else {
+            router.post('/admin/authors', fd);
+        }
     };
 
     return (
@@ -46,7 +51,7 @@ export default function AuthorForm({ author, users }: { author: any; users: { id
                         <CardContent className="grid gap-4 md:grid-cols-2">
                             <div><Label>Name *</Label><Input value={data.name} onChange={e => setData('name', e.target.value)} />{errors.name && <p className="text-sm text-red-500">{errors.name}</p>}</div>
                             <div><Label>Username</Label><Input value={data.username} onChange={e => setData('username', e.target.value)} placeholder="auto slug" /></div>
-                            <div className="md:col-span-2"><Label>Bio</Label><Textarea value={data.bio} onChange={e => setData('bio', e.target.value)} rows={3} /></div>
+                            <div className="md:col-span-2"><Label>Bio</Label><RichEditor value={data.bio} onChange={(v) => setData('bio', v)} placeholder="Author biography..." /></div>
                             <div><Label>Linked User</Label>
                                 <Select value={data.user_id} onValueChange={v => setData('user_id', v)}>
                                     <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>

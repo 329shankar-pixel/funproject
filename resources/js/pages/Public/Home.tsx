@@ -3,11 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { ArticleCard } from "@/components/articles/article-card";
 import { HeroStory } from "@/components/editorial/hero-story";
 import { SecondaryStory } from "@/components/editorial/secondary-story";
-import { TrendingBar } from "@/components/editorial/trending-bar";
-import { CategoryNav } from "@/components/navigation/category-nav";
 import { PublicFooter } from "@/components/navigation/public-footer";
 import { PublicHeader } from "@/components/navigation/public-header";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SeoHead } from "@/components/seo/seo-head";
+import { AnalyticsScripts } from "@/components/seo/analytics-scripts";
+import { AdSlot } from "@/components/ads/ad-slot";
 import type { SiteSettings } from "@/types/global";
 
 interface Article {
@@ -51,6 +52,8 @@ interface HomeProps {
     categories: Category[];
     trendingTopics: Topic[];
     siteSettings?: SiteSettings;
+    seo?: any;
+    verificationMeta?: { name: string; content: string }[];
 }
 
 function useScrollReveal() {
@@ -98,12 +101,33 @@ export default function Home({
     categories,
     trendingTopics,
     siteSettings: propSettings,
+    seo,
+    verificationMeta,
 }: HomeProps) {
     const page = usePage();
     const sharedSettings = (page.props as unknown as { siteSettings?: SiteSettings }).siteSettings;
+    const sharedSeo = (page.props as unknown as { seo?: any }).seo;
+    const sharedVerification = (page.props as unknown as { verificationMeta?: { name: string; content: string }[] }).verificationMeta;
+    const navigation = (page.props as unknown as { navigation?: any }).navigation;
+    const finalSeo = seo ?? sharedSeo;
+    const finalVerification = verificationMeta ?? sharedVerification;
+    // Dynamic View-all destinations — every link is admin-editable via Navigation + Pages/Categories
+    const trendingViewAllHref = (() => {
+        const custom = navigation?.headerPrimary?.find((l: any) => /trending/i.test(l.label))?.url || (navigation?.custom as any)?.header_primary?.find((l: any) => /trending/i.test(l.label))?.url;
+        if (custom) return custom;
+        if (trendingTopics?.[0]) return `/topic/${trendingTopics[0].slug}`;
+        if (categories?.[0]) return `/category/${categories[0].slug}`;
+        return "/";
+    })();
+    const latestViewAllHref = (() => {
+        const custom = navigation?.headerPrimary?.find((l: any) => /latest/i.test(l.label))?.url || ((navigation as any)?.custom?.header_primary?.find((l: any) => /latest/i.test(l.label))?.url) || (navigation?.headerPages?.[0] ? `/page/${navigation.headerPages[0].slug}` : null);
+        if (custom) return custom;
+        if (categories?.[0]) return `/category/${categories[0].slug}`;
+        return "/";
+    })();
     const siteSettings: SiteSettings = propSettings ?? sharedSettings ?? {
-        site_name: "Editorial",
-        site_tagline: "Premium News & Analysis",
+        site_name: "Public Center",
+        site_tagline: "Nepal's Trusted News & Public Affairs",
         footer_description: "",
         footer_copyright: "All rights reserved.",
         trending_terms: ["AI", "Climate", "Politics", "Technology", "Economy"],
@@ -117,12 +141,14 @@ export default function Home({
 
     return (
         <>
-            <Head title={`${siteSettings.site_name} - ${siteSettings.site_tagline}`} />
+            {finalSeo ? <SeoHead seo={finalSeo} verification={finalVerification} /> : <Head title={`${siteSettings.site_name} - ${siteSettings.site_tagline}`} />}
+            <AnalyticsScripts />
 
             <div className="min-h-screen bg-background">
-                <PublicHeader categories={categories} siteSettings={siteSettings} />
-                <TrendingBar topics={trendingTopics} />
-                <CategoryNav categories={categories} />
+                <PublicHeader categories={categories} trendingTopics={trendingTopics} siteSettings={siteSettings} />
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
+                    <AdSlot position="header" />
+                </div>
 
                 <main>
                     {/* Hero Section - Full Width */}
@@ -165,7 +191,7 @@ export default function Home({
                                 <div className="mb-6 flex items-center justify-between">
                                     <h2 className="text-lg font-bold text-foreground">{siteSettings.home_trending_title}</h2>
                                     <Link
-                                        href="/trending"
+                                        href={trendingViewAllHref as any}
                                         className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                                     >
                                         View all →
@@ -189,6 +215,9 @@ export default function Home({
                                         ))}
                                     </div>
                                 )}
+                                <div className="mt-8">
+                                    <AdSlot position="between_articles" />
+                                </div>
                             </SectionReveal>
                         </div>
                     </section>
@@ -200,7 +229,7 @@ export default function Home({
                                 <div className="mb-6 flex items-center justify-between">
                                     <h2 className="text-lg font-bold text-foreground">{siteSettings.home_latest_title}</h2>
                                     <Link
-                                        href="/latest"
+                                        href={latestViewAllHref as any}
                                         className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                                     >
                                         View all →
@@ -224,10 +253,18 @@ export default function Home({
                                         ))}
                                     </div>
                                 )}
+                                <div className="mt-8">
+                                    <AdSlot position="in_feed" />
+                                </div>
                             </SectionReveal>
                         </div>
                     </section>
                 </main>
+
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-6">
+                    <AdSlot position="footer" />
+                </div>
+                <AdSlot position="anchor" />
 
                 <PublicFooter categories={categories} siteSettings={siteSettings} />
             </div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Author;
 use App\Services\ArticleService;
 use App\Services\DiscoveryService;
+use App\Services\SeoService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -27,6 +28,7 @@ class AuthorController extends Controller
             'author' => $author,
             'articles' => Inertia::defer(fn () => $this->articleService->getArticlesByAuthor($author->id)),
             'categories' => $this->discoveryService->getMenuCategories(),
+            'seo' => SeoService::getMetaFor('author', $author),
         ]);
     }
 }

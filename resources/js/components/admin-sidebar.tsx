@@ -9,6 +9,11 @@ import {
     Settings,
     FileStack,
     Globe,
+    Search,
+    DollarSign,
+    Link2,
+    Share2,
+    Navigation,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavUser } from '@/components/nav-user';
@@ -50,6 +55,21 @@ const adminNavGroups: { label: string; items: NavItem[] }[] = [
         items: [
             { title: 'Authors', href: '/admin/authors', icon: UserRound },
             { title: 'Users', href: '/admin/users', icon: Users },
+        ],
+    },
+    {
+        label: 'SEO & Monetization',
+        items: [
+            { title: 'SEO & Ads', href: '/admin/seo', icon: Search },
+            { title: 'Monetization', href: '/admin/seo?tab=monetization', icon: DollarSign },
+            { title: 'Social Media', href: '/admin/social', icon: Share2 },
+        ],
+    },
+    {
+        label: 'Navigation',
+        items: [
+            { title: 'All Links', href: '/admin/navigation', icon: Navigation },
+            { title: 'Add Link', href: '/admin/navigation/create', icon: Link2 },
         ],
     },
     {

@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RichEditor } from '@/components/ui/rich-editor';
 
 export default function PageForm({ page }: { page: any }) {
     const isEdit = !!page;
@@ -30,8 +31,12 @@ export default function PageForm({ page }: { page: any }) {
         });
         fd.set('show_in_footer', data.show_in_footer ? '1' : '0');
         fd.set('show_in_header', data.show_in_header ? '1' : '0');
-        if (isEdit) { fd.append('_method', 'put'); post(`/admin/pages/${page.id}`, { forceFormData: true }); }
-        else post('/admin/pages', { forceFormData: true });
+        if (isEdit) {
+            fd.append('_method', 'PUT');
+            router.post(`/admin/pages/${page.id}`, fd);
+        } else {
+            router.post('/admin/pages', fd);
+        }
     };
 
     return (
@@ -44,8 +49,8 @@ export default function PageForm({ page }: { page: any }) {
                         <CardContent className="grid gap-4">
                             <div><Label>Title *</Label><Input value={data.title} onChange={e => setData('title', e.target.value)} />{errors.title && <p className="text-sm text-red-500">{errors.title}</p>}</div>
                             <div><Label>Slug</Label><Input value={data.slug} onChange={e => setData('slug', e.target.value)} placeholder="auto" /></div>
-                            <div><Label>Excerpt</Label><Textarea value={data.excerpt} onChange={e => setData('excerpt', e.target.value)} rows={2} /></div>
-                            <div><Label>Body * (HTML allowed)</Label><Textarea value={data.body} onChange={e => setData('body', e.target.value)} rows={12} />{errors.body && <p className="text-sm text-red-500">{errors.body}</p>}</div>
+                            <div><Label>Excerpt</Label><RichEditor value={data.excerpt} onChange={(v) => setData('excerpt', v)} placeholder="Short excerpt..." /></div>
+                            <div><Label>Body *</Label><RichEditor value={data.body} onChange={(v) => setData('body', v)} placeholder="Page content..." />{errors.body && <p className="text-sm text-red-500">{errors.body}</p>}</div>
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div><Label>Status</Label><Select value={data.status} onValueChange={v => setData('status', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="published">Published</SelectItem><SelectItem value="archived">Archived</SelectItem></SelectContent></Select></div>
                                 <div><Label>Sort Order</Label><Input type="number" value={String(data.sort_order)} onChange={e => setData('sort_order', Number(e.target.value))} /></div>

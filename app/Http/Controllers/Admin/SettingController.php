@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\RedirectResponse;
 
 class SettingController extends Controller
 {
@@ -18,8 +19,12 @@ class SettingController extends Controller
         // also provide grouped defaults for form
         $get = fn ($g, $k, $d = null) => Setting::get($g, $k, $d);
         $formData = [
-            'site_name' => $get('branding', 'site_name', 'Editorial'),
-            'site_tagline' => $get('branding', 'site_tagline', 'Premium News & Analysis'),
+            'site_name' => $get('branding', 'site_name', 'Public Center'),
+            'site_tagline' => $get('branding', 'site_tagline', 'Public Center - Nepal\'s Trusted News'),
+            'site_logo' => $get('branding', 'site_logo', null),
+            'site_logo_url' => $get('branding', 'site_logo', null) ? asset('storage/'.$get('branding', 'site_logo')) : null,
+            'site_favicon' => $get('branding', 'site_favicon', null),
+            'site_favicon_url' => $get('branding', 'site_favicon', null) ? asset('storage/'.$get('branding', 'site_favicon')) : null,
             'footer_description' => $get('footer', 'description', 'A premium digital publication delivering insightful analysis, breaking news, and in-depth reporting across technology, politics, business, and culture.'),
             'footer_copyright' => $get('footer', 'copyright', 'All rights reserved.'),
             'trending_terms' => implode(', ', (array) $get('search', 'trending_terms', ['AI', 'Climate', 'Politics', 'Technology', 'Economy'])),
@@ -42,7 +47,7 @@ class SettingController extends Controller
         $data = $request->validate([
             'site_name' => 'required|string|max:255',
             'site_tagline' => 'required|string|max:255',
-            'footer_description' => 'required|string|max:1000',
+            'footer_description' => 'required|string|max:5000',
             'footer_copyright' => 'required|string|max:255',
             'trending_terms' => 'required|string',
             'header_latest_label' => 'required|string|max:50',
@@ -51,10 +56,36 @@ class SettingController extends Controller
             'home_top_stories_title' => 'required|string|max:100',
             'home_trending_title' => 'required|string|max:100',
             'home_latest_title' => 'required|string|max:100',
+            'site_logo' => 'nullable|image|mimes:jpeg,png,jpg,svg,webp|max:2048',
+            'site_favicon' => 'nullable|image|mimes:jpeg,png,jpg,svg,webp,ico|max:1024',
+            'remove_logo' => 'nullable|boolean',
+            'remove_favicon' => 'nullable|boolean',
         ]);
 
         $terms = array_map('trim', explode(',', $data['trending_terms']));
         $terms = array_filter($terms);
+
+        // Handle logo uploads
+        if ($request->hasFile('site_logo')) {
+            $path = $request->file('site_logo')->store('branding', 'public');
+            Setting::set('branding', 'site_logo', $path);
+        } elseif ($request->boolean('remove_logo')) {
+            $old = Setting::get('branding', 'site_logo', null);
+            if ($old) {
+                Storage::disk('public')->delete($old);
+                Setting::set('branding', 'site_logo', null);
+            }
+        }
+        if ($request->hasFile('site_favicon')) {
+            $path = $request->file('site_favicon')->store('branding', 'public');
+            Setting::set('branding', 'site_favicon', $path);
+        } elseif ($request->boolean('remove_favicon')) {
+            $old = Setting::get('branding', 'site_favicon', null);
+            if ($old) {
+                Storage::disk('public')->delete($old);
+                Setting::set('branding', 'site_favicon', null);
+            }
+        }
 
         Setting::set('branding', 'site_name', $data['site_name']);
         Setting::set('branding', 'site_tagline', $data['site_tagline']);

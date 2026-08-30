@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Topic;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\RedirectResponse;
 
 class TopicController extends Controller
 {
@@ -38,6 +39,8 @@ class TopicController extends Controller
             $data['image'] = $request->file('image')->store('topics', 'public');
         }
         Topic::create($data);
+        Cache::forget('shared_trending_topics');
+
         return redirect()->route('admin.topics.index')->with('success', 'Topic created');
     }
 
@@ -56,12 +59,16 @@ class TopicController extends Controller
             unset($data['image']);
         }
         $topic->update($data);
+        Cache::forget('shared_trending_topics');
+
         return redirect()->route('admin.topics.index')->with('success', 'Topic updated');
     }
 
     public function destroy(Topic $topic): RedirectResponse
     {
         $topic->delete();
+        Cache::forget('shared_trending_topics');
+
         return back()->with('success', 'Topic deleted');
     }
 
@@ -69,7 +76,7 @@ class TopicController extends Controller
     {
         return $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:topics,slug' . ($id ? ",$id" : ''),
+            'slug' => 'nullable|string|max:255|unique:topics,slug'.($id ? ",$id" : ''),
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
             'color' => 'nullable|string|max:20',

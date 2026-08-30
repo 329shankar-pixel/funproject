@@ -1,6 +1,19 @@
 import type { SVGAttributes } from 'react';
+import { usePage } from '@inertiajs/react';
+import type { SiteSettings } from '@/types/global';
 
-export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
+export default function AppLogoIcon(props: SVGAttributes<SVGElement> & { src?: string; alt?: string }) {
+    try {
+        const page = usePage();
+        const siteSettings = (page.props as unknown as { siteSettings?: SiteSettings }).siteSettings;
+        const logoUrl = (siteSettings as unknown as { site_logo_url?: string })?.site_logo_url;
+        if (logoUrl) {
+            // Render uploaded logo — preserves size via className
+            return <img src={logoUrl} alt={(siteSettings as unknown as { site_name?: string })?.site_name ?? 'Public Center'} {...(props as unknown as React.ImgHTMLAttributes<HTMLImageElement>)} style={{ objectFit: 'contain' }} />;
+        }
+    } catch {
+        // Fallback to default if usePage not available (e.g. outside Inertia)
+    }
     return (
         <svg {...props} viewBox="0 0 40 42" xmlns="http://www.w3.org/2000/svg">
             <path

@@ -54,6 +54,15 @@ class ArticleService
             ->get();
     }
 
+    public function getTrendingArticlesPaginated(int $perPage = 12): LengthAwarePaginator
+    {
+        return Article::with(['author', 'category'])
+            ->published()
+            ->where('is_trending', true)
+            ->orderBy('view_count', 'desc')
+            ->paginate($perPage);
+    }
+
     public function getArticlesByCategory(Category $category, int $perPage = 12): LengthAwarePaginator
     {
         return Article::with(['author', 'category'])

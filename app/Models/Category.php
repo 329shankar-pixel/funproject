@@ -13,8 +13,16 @@ class Category extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => Cache::forget('shared_categories'));
-        static::deleted(fn () => Cache::forget('shared_categories'));
+        static::saved(function () {
+            Cache::forget('shared_categories');
+            Cache::forget('navigation_menus');
+            Cache::forget('seo_sitemap_xml');
+        });
+        static::deleted(function () {
+            Cache::forget('shared_categories');
+            Cache::forget('navigation_menus');
+            Cache::forget('seo_sitemap_xml');
+        });
     }
 
     protected $fillable = [

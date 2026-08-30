@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Services\ArticleService;
 use App\Services\DiscoveryService;
+use App\Services\SeoService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -27,6 +28,7 @@ class CategoryController extends Controller
             'category' => $category,
             'articles' => Inertia::defer(fn () => $this->articleService->getArticlesByCategory($category)),
             'categories' => $this->discoveryService->getMenuCategories(),
+            'seo' => SeoService::getMetaFor('category', $category),
         ]);
     }
 }

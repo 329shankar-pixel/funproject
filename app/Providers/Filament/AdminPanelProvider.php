@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Models\Setting;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -36,9 +37,22 @@ class AdminPanelProvider extends PanelProvider
                 'info' => Color::Blue,
             ])
             ->font('Inter')
-            ->brandName('Editorial Admin')
-            ->brandLogo(fn () => '<span class="text-xl font-bold">Editorial</span>')
-            ->favicon('/favicon.ico')
+            ->brandName('Public Center')
+            ->brandLogo(function () {
+                $logo = Setting::get('branding', 'site_logo', null);
+                $url = $logo ? asset('storage/'.$logo) : null;
+                $name = Setting::get('branding', 'site_name', 'Public Center');
+                if ($url) {
+                    return '<div class="flex items-center gap-2"><img src="'.e($url).'" alt="'.e($name).'" class="h-7 w-auto object-contain" /><span class="text-lg font-bold">'.e($name).'</span></div>';
+                }
+
+                return '<span class="text-xl font-bold">'.e($name).'</span>';
+            })
+            ->favicon(function () {
+                $fav = Setting::get('branding', 'site_favicon', null);
+
+                return $fav ? asset('storage/'.$fav) : '/favicon.ico';
+            })
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([

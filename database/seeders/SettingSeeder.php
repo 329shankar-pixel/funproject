@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Page;
 use App\Models\Setting;
 use Illuminate\Database\Seeder;
 
@@ -10,9 +11,9 @@ class SettingSeeder extends Seeder
     public function run(): void
     {
         $defaults = [
-            ['group' => 'branding', 'key' => 'site_name', 'value' => 'Editorial', 'type' => 'string', 'is_public' => true, 'description' => 'Site name shown in header, footer and titles'],
-            ['group' => 'branding', 'key' => 'site_tagline', 'value' => 'Premium News & Analysis', 'type' => 'string', 'is_public' => true, 'description' => 'Tagline after site name'],
-            ['group' => 'footer', 'key' => 'description', 'value' => 'A premium digital publication delivering insightful analysis, breaking news, and in-depth reporting across technology, politics, business, and culture.', 'type' => 'string', 'is_public' => true, 'description' => 'Footer description'],
+            ['group' => 'branding', 'key' => 'site_name', 'value' => 'Public Center', 'type' => 'string', 'is_public' => true, 'description' => 'Site name shown in header, footer and titles'],
+            ['group' => 'branding', 'key' => 'site_tagline', 'value' => "Nepal's Trusted News & Public Affairs", 'type' => 'string', 'is_public' => true, 'description' => 'Tagline after site name'],
+            ['group' => 'footer', 'key' => 'description', 'value' => 'Public Center (publiccenter.com.np) delivers trusted news, in-depth analysis and timely updates from Nepal and around the world — politics, economy, society and public affairs.', 'type' => 'string', 'is_public' => true, 'description' => 'Footer description'],
             ['group' => 'footer', 'key' => 'copyright', 'value' => 'All rights reserved.', 'type' => 'string', 'is_public' => true, 'description' => 'Copyright suffix'],
             ['group' => 'search', 'key' => 'trending_terms', 'value' => json_encode(['AI', 'Climate', 'Politics', 'Technology', 'Economy']), 'type' => 'json', 'is_public' => true, 'description' => 'Trending search terms'],
             ['group' => 'navigation', 'key' => 'header_latest_label', 'value' => 'Latest', 'type' => 'string', 'is_public' => true, 'description' => 'Header latest label'],
@@ -39,7 +40,7 @@ class SettingSeeder extends Seeder
         ];
 
         foreach ($pages as $row) {
-            \App\Models\Page::firstOrCreate(['slug' => $row['slug']], $row);
+            Page::firstOrCreate(['slug' => $row['slug']], $row);
         }
     }
 }

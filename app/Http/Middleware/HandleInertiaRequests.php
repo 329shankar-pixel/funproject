@@ -5,6 +5,9 @@ namespace App\Http\Middleware;
 use App\Models\Category;
 use App\Models\Page;
 use App\Models\Setting;
+use App\Models\Topic;
+use App\Services\NavigationService;
+use App\Services\SeoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -49,16 +52,31 @@ class HandleInertiaRequests extends Middleware
             'siteSettings' => fn () => $this->getSiteSettings(),
             'sharedCategories' => fn () => $this->getSharedCategories(),
             'sharedFooterPages' => fn () => $this->getFooterPages(),
+            'seoSettings' => fn () => SeoService::getGlobalSettings(),
+            'verificationMeta' => fn () => SeoService::getVerificationMeta(),
+            'monetization' => fn () => SeoService::getGlobalSettings()['monetization'] ?? [],
+            'navigation' => fn () => NavigationService::getAllMenus(),
+            'socialLinks' => fn () => NavigationService::getSocialProfiles(),
+            'sharePlatforms' => fn () => NavigationService::getSharePlatforms(),
+            'trendingTopics' => fn () => $this->getTrendingTopics(),
         ];
     }
 
     private function getSiteSettings(): array
     {
         return Cache::remember('site_settings', 3600, function () {
+            $logo = Setting::get('branding', 'site_logo', null);
+            $favicon = Setting::get('branding', 'site_favicon', null);
+
             return [
-                'site_name' => Setting::get('branding', 'site_name', 'Editorial'),
-                'site_tagline' => Setting::get('branding', 'site_tagline', 'Premium News & Analysis'),
-                'footer_description' => Setting::get('footer', 'description', 'A premium digital publication delivering insightful analysis, breaking news, and in-depth reporting across technology, politics, business, and culture.'),
+                'site_name' => Setting::get('branding', 'site_name', 'Public Center'),
+                'site_tagline' => Setting::get('branding', 'site_tagline', "Public Center - Nepal's Trusted News"),
+                'site_logo' => $logo,
+                'site_logo_url' => $logo ? asset('storage/'.$logo) : null,
+                'site_favicon' => $favicon,
+                'site_favicon_url' => $favicon ? asset('storage/'.$favicon) : null,
+                'site_url' => config('app.url', 'https://publiccenter.com.np'),
+                'footer_description' => Setting::get('footer', 'description', 'Public Center delivers trusted news, in-depth analysis and timely updates from Nepal and around the world.'),
                 'footer_copyright' => Setting::get('footer', 'copyright', 'All rights reserved.'),
                 'trending_terms' => Setting::get('search', 'trending_terms', ['AI', 'Climate', 'Politics', 'Technology', 'Economy']),
                 'header_latest_label' => Setting::get('navigation', 'header_latest_label', 'Latest'),
@@ -89,6 +107,18 @@ class HandleInertiaRequests extends Middleware
                 ->where('show_in_footer', true)
                 ->orderBy('sort_order')
                 ->get(['id', 'title', 'slug'])
+                ->toArray();
+        });
+    }
+
+    private function getTrendingTopics(): array
+    {
+        return Cache::remember('shared_trending_topics', 600, function () {
+            return Topic::where('is_active', true)
+                ->orderByDesc('articles_count')
+                ->orderBy('sort_order')
+                ->limit(8)
+                ->get(['id', 'name', 'slug'])
                 ->toArray();
         });
     }

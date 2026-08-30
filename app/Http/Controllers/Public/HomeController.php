@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Services\ArticleService;
 use App\Services\DiscoveryService;
+use App\Services\SeoService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,6 +26,7 @@ class HomeController extends Controller
             'latestArticles' => Inertia::defer(fn () => $this->articleService->getLatestArticles(12)),
             'categories' => $this->discoveryService->getMenuCategories(),
             'trendingTopics' => Inertia::defer(fn () => $this->discoveryService->getTrendingTopics(8)),
+            'seo' => SeoService::getMetaFor('home'),
         ]);
     }
 }

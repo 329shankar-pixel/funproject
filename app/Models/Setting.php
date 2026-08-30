@@ -12,8 +12,24 @@ class Setting extends Model
 
     protected static function booted(): void
     {
-        static::saved(fn () => Cache::forget('site_settings'));
-        static::deleted(fn () => Cache::forget('site_settings'));
+        static::saved(function ($model): void {
+            Cache::forget('site_settings');
+            Cache::forget('seo_global_settings');
+            Cache::forget('navigation_menus');
+            if (in_array($model->group, ['seo', 'verification', 'analytics', 'monetization', 'social', 'navigation'], true)) {
+                Cache::forget('seo_robots_txt');
+                Cache::forget('seo_sitemap_xml');
+            }
+        });
+        static::deleted(function ($model): void {
+            Cache::forget('site_settings');
+            Cache::forget('seo_global_settings');
+            Cache::forget('navigation_menus');
+            if (in_array($model->group, ['seo', 'verification', 'analytics', 'monetization', 'social', 'navigation'], true)) {
+                Cache::forget('seo_robots_txt');
+                Cache::forget('seo_sitemap_xml');
+            }
+        });
     }
 
     protected $fillable = ['group', 'key', 'value', 'type', 'description', 'is_public'];
