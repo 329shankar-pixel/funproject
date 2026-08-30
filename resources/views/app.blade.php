@@ -76,11 +76,20 @@
             } catch (\Throwable $e) {
                 $serverSeo = null;
             }
-            $ssOgImage = $serverSeo['og_image'] ?? $seoGlobal['og_image'] ?? asset('og-image.png');
-            $ssTitle = $serverSeo['title'] ?? $seoGlobal['site_name'] ?? $siteName;
-            $ssDesc = $serverSeo['description'] ?? $seoGlobal['meta_description'] ?? '';
-            $ssUrl = $serverSeo['og_url'] ?? url()->current();
-            $ssType = $serverSeo['og_type'] ?? 'website';
+            $ssOgImage = ($serverSeo['og_image'] ?? null) ?: ($seoGlobal['og_image'] ?? null) ?: asset('og-image.png');
+            // Ensure absolute https for crawlers
+            if ($ssOgImage && !str_starts_with($ssOgImage, 'http')) {
+                $ssOgImage = asset(ltrim($ssOgImage, '/'));
+            }
+            if (!str_starts_with($ssOgImage, 'https://')) {
+                $ssOgImage = str_replace('http://', 'https://', $ssOgImage);
+            }
+            $ssTitle = ($serverSeo['title'] ?? null) ?: ($seoGlobal['site_name'] ?? $siteName);
+            $ssDesc = ($serverSeo['description'] ?? null) ?: ($seoGlobal['meta_description'] ?? '');
+            $ssUrl = ($serverSeo['og_url'] ?? null) ?: url()->current();
+            $ssType = ($serverSeo['og_type'] ?? null) ?: 'website';
+            // Force https for og:url as well
+            $ssUrl = str_replace('http://', 'https://', $ssUrl);
         @endphp
         @foreach($verificationTags as $tag)
             <meta name="{{ $tag['name'] }}" content="{{ $tag['content'] }}">
