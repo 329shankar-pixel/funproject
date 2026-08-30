@@ -34,21 +34,31 @@ export function SeoHead({ seo, verification }: { seo?: SeoProps | null; verifica
             {seo.canonical && <link rel="canonical" href={seo.canonical} />}
             {seo.hreflang && seo.canonical && <link rel="alternate" href={seo.canonical} hrefLang={seo.hreflang} />}
 
-            {/* Open Graph */}
+            {/* Open Graph - large image card like NepalPress (1200x630) */}
             {seo.og_title && <meta property="og:title" content={seo.og_title} />}
             {seo.og_description && <meta property="og:description" content={seo.og_description} />}
             {seo.og_type && <meta property="og:type" content={seo.og_type} />}
             {seo.og_url && <meta property="og:url" content={seo.og_url} />}
             {seo.og_site_name && <meta property="og:site_name" content={seo.og_site_name} />}
-            {seo.og_image && <meta property="og:image" content={seo.og_image} />}
+            {seo.og_image && (
+                <>
+                    <meta property="og:image" content={seo.og_image} />
+                    <meta property="og:image:secure_url" content={seo.og_image} />
+                    <meta property="og:image:type" content="image/png" />
+                    <meta property="og:image:width" content="1200" />
+                    <meta property="og:image:height" content="630" />
+                    <meta property="og:image:alt" content={seo.og_title ?? seo.title} />
+                </>
+            )}
 
-            {/* Twitter */}
-            {seo.twitter_card && <meta name="twitter:card" content={seo.twitter_card} />}
+            {/* Twitter - large card */}
+            <meta name="twitter:card" content={seo.twitter_card ?? 'summary_large_image'} />
             {seo.twitter_site && <meta name="twitter:site" content={seo.twitter_site} />}
             {seo.twitter_creator && <meta name="twitter:creator" content={seo.twitter_creator} />}
             {seo.twitter_title && <meta name="twitter:title" content={seo.twitter_title} />}
             {seo.twitter_description && <meta name="twitter:description" content={seo.twitter_description} />}
-            {seo.twitter_image && <meta name="twitter:image" content={seo.twitter_image} />}
+            {(seo.twitter_image ?? seo.og_image) && <meta name="twitter:image" content={seo.twitter_image ?? seo.og_image ?? ''} />}
+            {(seo.twitter_image ?? seo.og_image) && <meta name="twitter:image:alt" content={seo.twitter_title ?? seo.og_title ?? seo.title} />}
 
             {/* Verification */}
             {verification?.map((tag) => (
