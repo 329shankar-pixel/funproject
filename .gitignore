@@ -1,7 +1,8 @@
 /.phpunit.cache
 /bootstrap/ssr
 /node_modules
-/public/build
+# /public/build - keep Vite manifest for production (cPanel)
+# /public/build
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
