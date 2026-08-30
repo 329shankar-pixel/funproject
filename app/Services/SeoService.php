@@ -14,6 +14,21 @@ class SeoService
     public static function getGlobalSettings(): array
     {
         return Cache::remember('seo_global_settings', 3600, function (): array {
+            $siteLogo = Setting::get('branding', 'site_logo', null);
+            $siteLogoUrl = $siteLogo ? asset('storage/'.$siteLogo) : null;
+            // Preferred OG fallback is site logo, then legacy og_image, then bundled default for publiccenter.com.np
+            $ogImage = Setting::get('seo', 'og_image', Setting::get('seo', 'og_image_default', ''));
+            if (empty($ogImage) && $siteLogoUrl) {
+                $ogImage = $siteLogoUrl;
+            }
+            if (empty($ogImage)) {
+                $ogImage = asset('og-image.png');
+            }
+            // Ensure absolute URL for social crawlers
+            if ($ogImage && ! str_starts_with($ogImage, 'http')) {
+                $ogImage = asset(ltrim($ogImage, '/'));
+            }
+
             $seo = [
                 'meta_title_template' => Setting::get('seo', 'meta_title_template', '{title} | {site_name}'),
                 'meta_description' => Setting::get('seo', 'meta_description', Setting::get('seo', 'meta_description_default', 'A premium digital publication delivering insightful analysis, breaking news, and in-depth reporting.')),
@@ -21,7 +36,7 @@ class SeoService
                 'robots' => Setting::get('seo', 'robots', Setting::get('seo', 'robots_default', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1')),
                 'canonical_enabled' => (bool) Setting::get('seo', 'canonical_enabled', true),
                 'og_site_name' => Setting::get('seo', 'og_site_name', Setting::get('branding', 'site_name', 'Public Center')),
-                'og_image' => Setting::get('seo', 'og_image', Setting::get('seo', 'og_image_default', '')),
+                'og_image' => $ogImage,
                 'og_type' => Setting::get('seo', 'og_type', 'website'),
                 'twitter_card' => Setting::get('seo', 'twitter_card', 'summary_large_image'),
                 'twitter_site' => Setting::get('seo', 'twitter_site', ''),
