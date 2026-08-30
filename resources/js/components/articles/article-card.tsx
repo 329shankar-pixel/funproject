@@ -24,6 +24,14 @@ interface Article {
     } | null;
 }
 
+function stripHtml(html: string): string {
+    return html
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&nbsp;|&amp;|&lt;|&gt;|&quot;/g, (m) => ({ '&nbsp;': ' ', '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"' }[m] ?? ' '))
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 interface ArticleCardProps {
     article: Article;
     variant?: "default" | "compact" | "horizontal" | "featured";
@@ -121,7 +129,7 @@ export function ArticleCard({
                         </h3>
                         {showExcerpt && article.excerpt && (
                             <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                                {article.excerpt}
+                                {stripHtml(article.excerpt)}
                             </p>
                         )}
                         <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
@@ -167,7 +175,7 @@ export function ArticleCard({
                         </h3>
                         {showExcerpt && article.excerpt && (
                             <p className="mt-3 line-clamp-3 text-base leading-relaxed text-muted-foreground">
-                                {article.excerpt}
+                                {stripHtml(article.excerpt)}
                             </p>
                         )}
                         <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
@@ -219,7 +227,7 @@ export function ArticleCard({
                     </h3>
                     {showExcerpt && article.excerpt && (
                         <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                            {article.excerpt}
+                            {stripHtml(article.excerpt)}
                         </p>
                     )}
                     <div className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">

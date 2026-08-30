@@ -21,6 +21,10 @@ interface Article {
     } | null;
 }
 
+function stripHtml(html: string): string {
+    return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 interface HeroStoryProps {
     article: Article;
 }
@@ -51,7 +55,7 @@ export function HeroStory({ article }: HeroStoryProps) {
                         </h1>
                         {article.excerpt && (
                             <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/80 md:text-lg line-clamp-2">
-                                {article.excerpt}
+                                {stripHtml(article.excerpt)}
                             </p>
                         )}
                         <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-white/70">
