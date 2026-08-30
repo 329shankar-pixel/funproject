@@ -1,4 +1,4 @@
-import { Link, usePage } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { Search, Menu, X, User, Bell, ChevronDown, Radio, Facebook, Instagram, Linkedin, Youtube, Send, MessageCircle, AtSign, Pin, Hash, Music2 } from "lucide-react";
 
 function XIcon({ className }: { className?: string }) {
@@ -118,10 +118,19 @@ export function PublicHeader({ categories: propCategories, trendingTopics: propT
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     const [scrolled, setScrolled] = useState(false);
     const [moreOpen, setMoreOpen] = useState(false);
     const moreRef = useRef<HTMLDivElement>(null);
     const auth = (page.props as unknown as { auth?: { user?: { name: string } } }).auth;
+
+    const handleSearch = (q?: string) => {
+        const term = (q ?? searchQuery).trim();
+        if (!term) return;
+        setSearchOpen(false);
+        setSearchQuery("");
+        router.get("/search", { q: term });
+    };
 
     const todayLabel = useMemo(() => {
         try {
@@ -553,10 +562,24 @@ export function PublicHeader({ categories: propCategories, trendingTopics: propT
                             <input
                                 type="text"
                                 placeholder="Search news, topics, authors..."
-                                className="h-14 w-full rounded-sm border border-zinc-300 bg-white pl-12 pr-4 text-lg outline-none placeholder:text-zinc-400 focus:border-black focus:ring-1 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-white"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        handleSearch();
+                                    }
+                                }}
+                                className="h-14 w-full rounded-sm border border-zinc-300 bg-white pl-12 pr-24 text-lg outline-none placeholder:text-zinc-400 focus:border-black focus:ring-1 focus:ring-black dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-white"
                                 autoFocus
                             />
-                            <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 sm:block">
+                            <button
+                                onClick={() => handleSearch()}
+                                className="absolute right-1.5 top-1/2 hidden -translate-y-1/2 rounded-sm bg-black px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white hover:bg-zinc-800 dark:bg-white dark:text-black sm:inline-flex"
+                            >
+                                Search
+                            </button>
+                            <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 sm:block lg:hidden">
                                 Press Enter
                             </span>
                         </div>
@@ -564,7 +587,7 @@ export function PublicHeader({ categories: propCategories, trendingTopics: propT
                             <p className="text-xs font-black uppercase tracking-[0.14em] text-zinc-900 dark:text-white">Trending searches</p>
                             <div className="mt-3 flex flex-wrap gap-2">
                                 {siteSettings.trending_terms.map((term) => (
-                                    <button key={term} className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black dark:bg-zinc-800">
+                                    <button key={term} onClick={() => handleSearch(term)} className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black dark:bg-zinc-800">
                                         {term}
                                     </button>
                                 ))}
